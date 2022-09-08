@@ -19,7 +19,18 @@ char *help =
 Options:\n\
 	\t-x <\"characters\">\tcharacters to be extracted.\n\
 	\t-f <\"characters\">\tcharacters to be inserted instead of removed characters.\n\
-	\t-s \t\t\tcharacters are added periodically.\n";
+	\t-s \t\t\tcharacters are added periodically.\n\
+	\n\
+Ready-made character sets can be used with x flag:\n\
+	\tnums\t1234567890\n\
+	\talph\ta-Z\n\
+	\ttnr\t\\t\\n\\r";
+	
+char *nums = "1234567890";
+char *alph = "abcdefghijklmnopqrstuvwxyz"
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+char *tnr  = "\t\n\r";
 
 int main(int argc, char **argv)
 {
@@ -82,6 +93,10 @@ int main(int argc, char **argv)
 			}
 		}
 	}else
+		if      (strcmp(xchars, "nums") == 0) xchars = nums;
+		else if (strcmp(xchars, "alph") == 0) xchars = alph;
+		else if (strcmp(xchars,  "tnr") == 0) xchars = tnr;
+
 		for (i = 0; i < strlen(argv[optind]); ++i) {
 			if (is_in_str(xchars, argv[optind][i])) {
 				fprintf(stdout, "%s", fll);
