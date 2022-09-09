@@ -12,6 +12,7 @@ typedef int Bool;
 
 Bool is_in_str(const char *str, const char ch);
 Bool is_all_dig(const char *str);
+void *cmalloc(size_t type, int n);
 
 char *help = 
 "Usage:\n\
@@ -24,7 +25,7 @@ Options:\n\
 Ready-made character sets can be used with x flag:\n\
 	\tnums\t1234567890\n\
 	\talph\ta-Z\n\
-	\ttnr\t\\t\\n\\r";
+	\ttnr \t\\t\\n\\r\n";
 	
 char *nums = "1234567890";
 char *alph = "abcdefghijklmnopqrstuvwxyz"
@@ -36,14 +37,17 @@ int main(int argc, char **argv)
 {
 	int result;
 	int i, j;
+	int index = 0;
 	int split = 0;
-	Bool 
-		f_flag = false, 
-		x_flag = false, 
-		s_flag = false;
+	int charc = 0;
 
+	Bool x_flag = false, s_flag = false;
+
+	char *buf;
 	const char *xchars = " \n\t";
 	const char *fll    = "";
+
+	size_t leng;
 
 	opterr = 0;
 
@@ -55,12 +59,11 @@ int main(int argc, char **argv)
 	while ((result = getopt(argc, argv, "x:f:s")) != (-1)) 
 		switch (result) {
 			case 'x':
-				xchars = optarg;
 				x_flag = true;
+				xchars = optarg;
 				break;
 			case 'f':
 				fll = optarg;
-				f_flag = true;
 				break;
 			case 's':
 				s_flag = true;
@@ -84,28 +87,40 @@ int main(int argc, char **argv)
 		}
 
 		split = atoi(xchars);
-		
+		leng = strlen(argv[optind]) + (strlen(argv[optind]) / split + 1) * strlen(fll);
+		buf = cmalloc(sizeof(char), leng);
+
 		for (i = 0; i < strlen(argv[optind]); ++i) {
-			fprintf(stdout, "%c", argv[optind][i]);
+			index += sprintf(buf + index, "%c", argv[optind][i]);
 			if ((i + 1) % split == 0) {
-				fprintf(stdout, "%s", fll);
-				//continue;
+				index += sprintf(buf + index, "%s", fll);
+
 			}
 		}
-	}else
+	}
+	else {
 		if      (strcmp(xchars, "nums") == 0) xchars = nums;
 		else if (strcmp(xchars, "alph") == 0) xchars = alph;
 		else if (strcmp(xchars,  "tnr") == 0) xchars = tnr;
 
+		for (i = 0; i < strlen(argv[optind]); ++i)
+			if (is_in_str(xchars, argv[optind][i]))
+				++charc;
+
+		leng = strlen(argv[optind]) + charc * strlen(fll) - charc + 1;
+		buf = cmalloc(sizeof(char), leng);
+		printf("%ld\n", leng);
+		
 		for (i = 0; i < strlen(argv[optind]); ++i) {
 			if (is_in_str(xchars, argv[optind][i])) {
-				fprintf(stdout, "%s", fll);
+				index += sprintf(buf + index, "%s", fll);
 				continue;
 			}
-			fprintf(stdout, "%c", argv[optind][i]);
+			index += sprintf(buf + index, "%c", argv[optind][i]);
 		}
+	}
 
-	fprintf(stdout, "\n");
+	fprintf(stdout, "%s\n", buf);
 	
 	return 0;
 }
@@ -128,3 +143,13 @@ Bool is_all_dig(const char *str)
 	return true;
 }
 
+void *cmalloc(size_t type, int n)
+{
+	void *pt;
+	if ((pt = malloc(type * n)) == NULL) {
+		fprintf(stderr, "memory space cannot be allocated\n");
+		exit(EXIT_FAILURE);
+	}
+
+	return pt;
+}
